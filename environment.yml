@@ -1,0 +1,32 @@
+# environment.yml
+# 역할:
+#   - conda 환경을 "한 방"에 재현합니다.
+#   - Python, 채널, 기본 도구(pip)를 conda로 설치하고,
+#     실제 앱 의존성은 pip로 requirements.txt에서 설치합니다.
+# 사용법:
+#   - 생성: conda env create -f environment.yml
+#   - 업데이트: conda env update -f environment.yml --prune
+#   - 활성화: conda activate gangku-ai
+
+name: gangku-ai
+
+# conda-forge를 우선 사용하면 Mac(Apple Silicon)에서 가용 패키지가 넓습니다.
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # Python 및 필수 툴을 conda로 설치합니다.
+  - python=3.11.13
+  - pip=25.1
+
+  # (선택) SSL/빌드 관련 기본 런타임을 명시해 두면 재현성이 올라갑니다.
+  # - ca-certificates
+  # - openssl
+  # - libffi
+
+  # 여기까지 설치한 후, 아래 pip 섹션이 실행됩니다.
+  - pip:
+      # 프로젝트 루트에 있는 요구사항 파일들을 그대로 사용합니다.
+      - -r requirements.txt
+      - -r requirements-dev.txt
