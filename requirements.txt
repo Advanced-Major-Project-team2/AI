@@ -1,10 +1,8 @@
 # ─────────────────────────────────────────────────────────────
-# gangku-ai-server: Runtime dependencies (Mac + conda, Python 3.11)
+# ai-server: Runtime dependencies (Mac + conda, Python 3.11)
 # 이 파일은 "서비스가 실제로 사용하는 패키지"만 고정합니다.
 # - FastAPI 웹 서버 구동
 # - 설정 및 환경변수 관리
-# - 외부 API 연동(OpenAI)
-# - 텍스트 처리/모델 추론(Transformers, Torch 등)
 # 주의: 하위 의존성은 pip가 자동으로 설치합니다.
 # ─────────────────────────────────────────────────────────────
 
@@ -17,15 +15,8 @@ pydantic==2.11.7           # DTO/스키마 검증
 pydantic-settings==2.10.1  # .env 기반 설정 로딩
 python-dotenv==1.1.1       # .env 파싱(보조적으로 사용 시)
 
-# --- HTTP clients / 외부 연동 ---
-httpx==0.28.1              # 비동기 HTTP 클라이언트(외부 API 호출용)
-openai==1.108.1            # OpenAI SDK (모임소개 자동생성 등에 사용)
-
 # --- NLP / 모델 추론 ---
-transformers==4.56.2       # HF Transformers (토큰화/모델 로딩)
-tokenizers==0.22.1         # 빠른 토크나이저(Transformers의 하위 모듈)
 torch==2.8.0               # PyTorch (모델 추론/학습; Apple Silicon은 MPS 가속 가능)
-huggingface-hub==0.35.0    # 모델/체크포인트 다운로드
 safetensors==0.6.2         # 안전한 텐서 포맷
 nltk==3.9.1                # 텍스트 전처리/토큰화 등(필요 시)
 
