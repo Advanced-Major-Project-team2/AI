@@ -45,7 +45,7 @@ class GatheringIn(BaseModel):
         raise ValueError("createdAt은 ISO datetime 문자열 또는 LocalDateTime 배열이어야 합니다.")
 
 
-# ----- 추천 API request-----
+# ----- 추천 API request v2-----
 class RecommendByClusteringModelRequest(BaseModel):
     """
     해당 schema의 사용처
@@ -84,3 +84,86 @@ class RecommendationResponse(BaseModel):
     gatheringsId: List[int] = Field(default_factory=list)
     # dict 보다는 키/값 타입 지정
     # debug: Optional[Dict[str, str]] = None
+
+
+# ----- cluster 최신화 -----
+class ClusteringUserData(BaseModel):
+    userId: Optional[int] = Field(
+        None, gt=0, description="사용자 식별자(로그인 이용자 시 int, 비로그인 이용자 시 None)"
+    )
+    preferredCategories: Optional[List[Category]] = Field(
+        None,
+        min_length=1,
+        max_length=3,
+        description="선호 카테고리(최대 3개)"
+    )
+    age: Optional[int] = Field(
+        None, ge=20, le=100, description="사용자 나이(선택)"
+    )
+    enrollNumber: Optional[int] = Field(
+        None, description="사용자 학번(선택)"
+    )
+    userJoinCount: Optional[int] = Field(
+        None, description="사용자의 모임 참여 횟수(선택)"
+    )
+
+
+class ClusterRefreshRequest(BaseModel):
+    """
+    클러스터를 Refresh할 때 받을 외부 DTO
+    유저들의 데이터를 RecommendByClusteringModelRequest를 리스트 형태로 받고
+    해당 리스트를 토대로 cluster를 만든다.
+    """
+    users: List[ClusteringUserData]
+
+
+class ClusterRefreshResponse(BaseModel):
+    """
+    클러스터 재학습 결과를 요약해서 반환하는 응답 모델입니다.
+    - 실서비스용으로는 굳이 안 써도 되지만,
+    현재 모델 상태를 확인하기 위함.
+    """
+    n_users: int = Field(..., description="이번 배치에 사용된 사용자 수")
+    n_clusters: int = Field(..., description="실제로 사용된 군집 수(K)")
+    inertia: float = Field(
+        ...,
+        description="K-means SSE(inertia) 값"
+    )
+    cluster_sizes: Dict[int, int] = Field(
+        ...,
+        description="각 cluster_id별로 속한 사용자 수. 예: {0: 30, 1: 25, ...}"
+    )
+# ----- cluster 최신화 -----
+
+
+# ----- cluster당 선호 방 최신화 -----
+class UserActionlog(BaseModel):
+    userId: Optional[int] = Field(
+        None, gt=0, description="사용자 식별자(로그인 이용자 시 int, 비로그인 이용자 시 None)"
+    )
+    gatheringId: int = Field(
+        ..., gt=0, description="모임 식별자(양의 정수)"
+    )
+    status: UserStatus
+
+
+class PopularityRefreshRequest(BaseModel):
+    """
+    사용자들의 참여로그를 분석해
+    각각의 군집당 어떤 방이 인기있는지 분석을 하기 위함.
+    """
+    logList: List[UserActionlog]
+
+
+class PopularityRefreshResponse(BaseModel):
+    """
+    군집별 인기 방 테이블을 재계산한 뒤,
+    요약 정보를 반환하는 응답 모델입니다.
+    """
+    total_logs: int = Field(..., description="처리한 전체 로그 수")
+    n_clusters: int = Field(..., description="인기 방이 계산된 클러스터 수")
+    top_n: int = Field(..., description="각 클러스터별로 상위 몇 개까지 저장했는지")
+    cluster_popularity: Dict[int, List[int]] = Field(
+        ..., description="cluster_id -> [room_id1, room_id2, ...] 매핑"
+    )
+# ----- cluster당 선호 방 최신화 -----
